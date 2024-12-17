@@ -16,11 +16,13 @@ jobs:
         id: get_diff
         run: |
           git diff HEAD^ HEAD > diff.txt || echo "No changes"
-          
-      - name: Send to Discord
-        uses: fjogeleit/http-request-action@v1.1.0
-        with:
-          url: ${{ secrets.DISCORD_WEBHOOK_URL }}  # Store your webhook URL in GitHub Secrets
-          method: POST
-          headers: '{"Content-Type": "application/json"}'
-          data: '{"content": "New commit pushed:\n```diff\n$(cat diff.txt)```"}'
+
+      - name: Read diff and send to Discord
+        id: send_to_discord
+        run: |
+          DIFF_CONTENT=$(<diff.txt)
+          if [ -s diff.txt ]; then
+            curl -X POST -H "Content-Type: application/json" -d "{\"content\": \"New commit pushed:\n\`\`\`diff\n$DIFF_CONTENT\`\`\`\"}" ${{ secrets.DISCORD_WEBHOOK_URL }}
+          else
+            echo "No changes to report."
+          fi
