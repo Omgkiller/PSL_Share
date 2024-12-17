@@ -14,8 +14,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Send commit details and diff to Discord
-      - name: Send to Discord
+      # Step 2: Generate and save the payload
+      - name: Generate Discord Payload
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
@@ -49,5 +49,12 @@ jobs:
           EOF
           )
 
-          # Send the payload to Discord
-          curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" $DISCORD_WEBHOOK_URL
+          # Save the payload to a file
+          echo "$PAYLOAD" > debug_payload.json
+
+      # Step 3: Upload the payload as an artifact
+      - name: Upload Payload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: debug-payload
+          path: debug_payload.json
