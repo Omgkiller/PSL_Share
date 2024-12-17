@@ -51,6 +51,7 @@ jobs:
     
           // modify payload as you like
           delete payload.embeds[0].color
+          payload.content = $DIFF
     
           // send to Discord
           axios.post(WEBHOOK_URL, payload)
