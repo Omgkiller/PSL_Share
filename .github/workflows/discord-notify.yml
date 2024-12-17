@@ -45,7 +45,7 @@ jobs:
       with:
         script: |
           const axios = require("axios")
-    
+          const diff = JSON.parse(fs.readFileSync(DIFF_FILE, 'utf8'));
           const { WEBHOOK_PAYLOAD, WEBHOOK_URL } = process.env
     
           const payload = JSON.parse(WEBHOOK_PAYLOAD)
