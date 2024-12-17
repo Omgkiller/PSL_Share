@@ -1,4 +1,56 @@
-name: Notify Discord on Push
+name: Notify Discord on Push with Diff
+
+on:
+  push:
+    branches:
+      - main  # Trigger on pushes to the main branch (you can adjust this)
+
+jobs:
+  notify-discord:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Send commit details and diff to Discord
+      - name: Send to Discord
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          # Get the latest commit details
+          COMMIT_MESSAGE=$(git log -1 --pretty=format:'%s')
+          COMMIT_AUTHOR=$(git log -1 --pretty=format:'%an')
+          COMMIT_URL="https://github.com/${{ github.repository }}/commit/${{ github.sha }}"
+          REPO_URL="https://github.com/${{ github.repository }}"
+
+          # Generate the diff for the latest commit
+          DIFF=$(git show --format= --unified=5)
+
+          # Truncate the diff if it's too long (Discord's max message size is 2000 characters)
+          MAX_LENGTH=1800
+          if [ ${#DIFF} -gt $MAX_LENGTH ]; then
+            DIFF="${DIFF:0:$MAX_LENGTH}\n\n**[Diff truncated]**: [View full diff here](${COMMIT_URL}.diff)"
+          fi
+
+          # Escape special characters for Discord's JSON payload
+          DIFF=$(echo "$DIFF" | sed 's/"/\\"/g')
+
+          # Create the Discord message payload
+          PAYLOAD=$(cat <<EOF
+          {
+            "content": "**New Commit in [${{ github.repository }}](${REPO_URL}):**\n
+            - **Author:** ${COMMIT_AUTHOR}\n
+            - **Message:** ${COMMIT_MESSAGE}\n
+            - **Commit URL:** [View Commit](${COMMIT_URL})\n
+            - **Diff:**\n\`\`\`diff\n$DIFF\n\`\`\`"
+          }
+          EOF
+          )
+
+          # Send the payload to Discord
+          curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" $DISCORD_WEBHOOK_URLname: Notify Discord on Push
 
 on:
   push:
