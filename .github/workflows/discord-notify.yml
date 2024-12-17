@@ -50,31 +50,4 @@ jobs:
           )
 
           # Send the payload to Discord
-          curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" $DISCORD_WEBHOOK_URLname: Notify Discord on Push
-
-on:
-  push:
-    branches:
-      - main  # Change to your branch name if necessary
-
-jobs:
-  notify:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Get diff
-        id: get_diff
-        run: |
-          git diff HEAD^ HEAD > diff.txt || echo "No changes"
-
-      - name: Read diff and send to Discord
-        id: send_to_discord
-        run: |
-          DIFF_CONTENT=$(<diff.txt)
-          if [ -s diff.txt ]; then
-            curl -X POST -H "Content-Type: application/json" -d "{\"content\": \"New commit pushed:\n\`\`\`diff\n$DIFF_CONTENT\`\`\`\"}" ${{ secrets.DISCORD_WEBHOOK_URL }}
-          else
-            echo "No changes to report."
-          fi
+          curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" $DISCORD_WEBHOOK_URL
