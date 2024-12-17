@@ -12,8 +12,22 @@ jobs:
     steps:
       # Step 1: Checkout the repository
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # OR "2" -> To retrieve the preceding commit.
 
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+      # NOTE: `since_last_remote_commit: true` is implied by default and falls back to the previous local commit.
+
+      - name: List all changed files
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+        run: |
+          for file in ${ALL_CHANGED_FILES}; do
+            echo "$file was changed"
+          done
       # Step 2: Generate and save the payload
       - name: Generate Discord Payload
         env:
@@ -26,17 +40,7 @@ jobs:
           REPO_URL="https://github.com/${{ github.repository }}"
 
           # Generate the diff for the latest commit
-          DIFF=$(git show --format= --unified=5)
-
-          # Truncate the diff if it's too long (Discord's max message size is 2000 characters)
-          MAX_LENGTH=1800
-          if [ ${#DIFF} -gt $MAX_LENGTH ]; then
-            DIFF="${DIFF:0:$MAX_LENGTH}\n\n**[Diff truncated]**: [View full diff here](${COMMIT_URL}.diff)"
-          fi
-
-          # Escape special characters for JSON (like quotes, backslashes, and newlines)
-          DIFF=$(echo "$DIFF" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
-
+          DIFF = ALL_CHANGED_FILES
           # Create the Discord message payload
           PAYLOAD=$(cat <<EOF
           {
