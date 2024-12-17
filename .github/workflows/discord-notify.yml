@@ -34,17 +34,17 @@ jobs:
             DIFF="${DIFF:0:$MAX_LENGTH}\n\n**[Diff truncated]**: [View full diff here](${COMMIT_URL}.diff)"
           fi
 
-          # Escape special characters for Discord's JSON payload
-          DIFF=$(echo "$DIFF" | sed 's/"/\\"/g')
+          # Escape special characters for JSON (like quotes, backslashes, and newlines)
+          DIFF=$(echo "$DIFF" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
 
           # Create the Discord message payload
           PAYLOAD=$(cat <<EOF
           {
-            "content": "**New Commit in [${{ github.repository }}](${REPO_URL}):**\n
-            - **Author:** ${COMMIT_AUTHOR}\n
-            - **Message:** ${COMMIT_MESSAGE}\n
-            - **Commit URL:** [View Commit](${COMMIT_URL})\n
-            - **Diff:**\n\`\`\`diff\n$DIFF\n\`\`\`"
+            "content": "**New Commit in [${{ github.repository }}](${REPO_URL}):**\\n
+            - **Author:** ${COMMIT_AUTHOR}\\n
+            - **Message:** ${COMMIT_MESSAGE}\\n
+            - **Commit URL:** [View Commit](${COMMIT_URL})\\n
+            - **Diff:**\\n\`\`\`diff\\n$DIFF\\n\`\`\`"
           }
           EOF
           )
