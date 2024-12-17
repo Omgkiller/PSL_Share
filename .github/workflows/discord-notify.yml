@@ -41,6 +41,7 @@ jobs:
       env:
         WEBHOOK_PAYLOAD: ${{ steps.webhook.outputs.payload }}
         WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK }}
+        DIFF_FILE: diff.json  # Specify the diff file
       with:
         script: |
           const axios = require("axios")
@@ -51,7 +52,7 @@ jobs:
     
           // modify payload as you like
           delete payload.embeds[0].color
-          payload.content = $DIFF
+          payload.content = `Diff:\n\`\`\`json\n${JSON.stringify(diff, null, 2)}\n\`\`\`
     
           // send to Discord
           axios.post(WEBHOOK_URL, payload)
