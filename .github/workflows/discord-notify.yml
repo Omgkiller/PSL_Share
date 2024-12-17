@@ -1,0 +1,26 @@
+name: Notify Discord on Push
+
+on:
+  push:
+    branches:
+      - main  # Change to your branch name if necessary
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Get diff
+        id: get_diff
+        run: |
+          git diff HEAD^ HEAD > diff.txt || echo "No changes"
+          
+      - name: Send to Discord
+        uses: fjogeleit/http-request-action@v1.1.0
+        with:
+          url: ${{ secrets.DISCORD_WEBHOOK_URL }}  # Store your webhook URL in GitHub Secrets
+          method: POST
+          headers: '{"Content-Type": "application/json"}'
+          data: '{"content": "New commit pushed:\n```diff\n$(cat diff.txt)```"}'
